@@ -1,0 +1,120 @@
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# VSCode
+.vscode/
+
+*.db
+.pylintrc
+
+.mypy_cache/
+
+
+# Byte-compiled / optimized / compiled Python files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment directories
+.venv/
+env/
+ENV/
+venv/
+venv.bak/
+env.bak/
+
+# Editor config files (VS Code, PyCharm, и другие IDE)
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+# Обычно создает папку "build/" и "dist/", которые содержат исполняемые файлы.
+# Можно добавлять исключения, если нужно отслеживать build-скрипты.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Django stuff:
+*.log
+*.pyc
+db.sqlite3
+media/
+
+# MyPy cache
+.mypy_cache/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# SQL dump
+*.sql
+
+# Local configuration files
+*.env
+
+# Ignore database dumps
+*.db
+
+# Ansible
+*.retry
+
+# Docker and temporary system files
+*.tar
+*.bak
+*.swp
+*.tmp
+.DS_Store
+
+# фаил с подсказками
+подсказка.txt
+
+# Poker calculator cache files
+equity_cache.pickle
+
+# Screenshot files
+screenshot_*.png
+подсказка.txt
+план.txt

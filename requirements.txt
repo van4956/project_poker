@@ -1,0 +1,6 @@
+numpy==2.3.0              # Numeric Pyton - для работы с массивами
+opencv_python==4.11.0.86  # Open Computer Vision - для работы с изображениями
+Pillow==11.2.1            # Python Imaging Library - для работы с изображениями
+treys==0.1.8              # treys - для работы с изображениями
+ultralytics==8.3.155      # YOLOv8 - для детектирования визуальных объектов
+pytesseract==5.4.0        # pytesseract - для распознавания текста
