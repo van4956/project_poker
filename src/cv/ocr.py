@@ -30,10 +30,10 @@ def ocr_text(image_path, bbox, lang="rus", config="--psm 6", preprocess=True) ->
 
     # Ограничиваем координаты границами изображения с отступами
     margin = 10
-    x1_safe = max(0, x1 - margin)
-    y1_safe = max(0, y1 + margin)
-    x2_safe = min(img_width, x2 + margin)
-    y2_safe = min(img_height, y2 - margin)
+    x1_safe = max(0, x1 - margin)      # Расширяем влево
+    y1_safe = max(0, y1 - margin)      # Расширяем вверх
+    x2_safe = min(img_width, x2 + margin)   # Расширяем вправо
+    y2_safe = min(img_height, y2 + margin)  # Расширяем вниз
 
     # Проверяем, что после коррекции область не пустая
     if x1_safe >= x2_safe or y1_safe >= y2_safe:
@@ -66,7 +66,7 @@ def ocr_text(image_path, bbox, lang="rus", config="--psm 6", preprocess=True) ->
         # Бинаризация
         _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-        cv2.imwrite(f'debug_roi_{x1}.png', roi)
+        # cv2.imwrite(f'debug_roi_{x1}.png', roi)
         cv2.imwrite(f'debug_bw_{x1}.png', bw)
 
         text = pytesseract.image_to_string(bw, lang=lang, config=config)

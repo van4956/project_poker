@@ -147,7 +147,7 @@ def parse_image(image_path: str, conf: float = 0.3) -> dict:
         if det['name'] == 'pot_box' and pot_conf < det['conf']:
             # проверяем все конфигурации PSM
             for psm in list_psm:
-                pot_text = ocr_text(image_path, det['bbox'], config=psm, preprocess=False)
+                pot_text = ocr_text(image_path, det['bbox'], config=psm, preprocess=True)
                 pot, pot_conf = extract_number(pot_text), det['conf']
                 if pot != 0:
                     break
