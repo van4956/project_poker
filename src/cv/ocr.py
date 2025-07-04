@@ -16,14 +16,46 @@ def ocr_text(image_path, bbox, lang="rus", config="--psm 6", preprocess=True) ->
     '''
     img = cv2.imread(image_path)
     if img is None:
+        print(f"Ошибка: не удалось загрузить изображение {image_path}")
         return ""
+
+    # Получаем размеры изображения
+    img_height, img_width = img.shape[:2]
     x1, y1, x2, y2 = bbox
-    roi = img[y1+10:y2-10, x1-10:x2+10]
+
+    # Проверяем корректность координат bbox
+    if x1 >= x2 or y1 >= y2:
+        print(f"Ошибка: некорректные координаты bbox {bbox}")
+        return ""
+
+    # Ограничиваем координаты границами изображения с отступами
+    margin = 10
+    x1_safe = max(0, x1 - margin)
+    y1_safe = max(0, y1 + margin)
+    x2_safe = min(img_width, x2 + margin)
+    y2_safe = min(img_height, y2 - margin)
+
+    # Проверяем, что после коррекции область не пустая
+    if x1_safe >= x2_safe or y1_safe >= y2_safe:
+        print(f"Ошибка: область ROI пуста после коррекции. Исходный bbox: {bbox}, размер изображения: {img_width}x{img_height}")
+        return ""
+
+    # Извлекаем ROI
+    roi = img[y1_safe:y2_safe, x1_safe:x2_safe]
+
+    # Дополнительная проверка размера ROI
+    if roi.size == 0 or roi.shape[0] == 0 or roi.shape[1] == 0:
+        print(f"Ошибка: пустая область ROI. Размер: {roi.shape}, bbox: {bbox}")
+        return ""
 
     if preprocess:
         # Увеличиваем изображение для лучшего OCR
         scale = 2
-        roi = cv2.resize(roi, (roi.shape[1]*scale, roi.shape[0]*scale), interpolation=cv2.INTER_CUBIC)
+        try:
+            roi = cv2.resize(roi, (roi.shape[1]*scale, roi.shape[0]*scale), interpolation=cv2.INTER_CUBIC)
+        except Exception as e:
+            print(f"Ошибка: {e}, размер ROI: {roi.shape}")
+            return ""
 
         gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
         # Повышаем контраст с помощью CLAHE
@@ -34,8 +66,8 @@ def ocr_text(image_path, bbox, lang="rus", config="--psm 6", preprocess=True) ->
         # Бинаризация
         _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-        # cv2.imwrite(f'debug_roi_{x1}.png', roi)
-        # cv2.imwrite(f'debug_bw_{x1}.png', bw)
+        cv2.imwrite(f'debug_roi_{x1}.png', roi)
+        cv2.imwrite(f'debug_bw_{x1}.png', bw)
 
         text = pytesseract.image_to_string(bw, lang=lang, config=config)
 

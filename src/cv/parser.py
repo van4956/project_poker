@@ -84,6 +84,22 @@ def parse_image(image_path: str, conf: float = 0.3) -> dict:
     :param conf: базовое пороговое значение уверенности для фильтрации (по дефолту 0.3)
     :return: словарь со всеми данными полученными из изображения
     '''
+    # Проверяем существование файла
+    if not os.path.exists(image_path):
+        print(f"Ошибка: файл {image_path} не существует")
+        return {}
+
+    # Проверяем возможность загрузки изображения
+    img = cv2.imread(image_path)
+    if img is None:
+        print(f"Ошибка: не удалось загрузить изображение {image_path}")
+        return {}
+
+    img_h, img_w = img.shape[:2]
+    if img_h == 0 or img_w == 0:
+        print(f"Ошибка: изображение имеет нулевые размеры {img_w}x{img_h}")
+        return {}
+
     # список обнаруженных объектов
     list_detect_images = detect_image(image_path=image_path,
                                                             conf=0.4,
@@ -109,8 +125,6 @@ def parse_image(image_path: str, conf: float = 0.3) -> dict:
                    }
 
     # размеры и центр изображения
-    img = cv2.imread(image_path)
-    img_h, img_w = img.shape[:2]
     center_img = (img_w // 2, img_h // 2)
 
     list_psm = ["--psm 6", "--psm 7", "--psm 8", "--psm 13"]

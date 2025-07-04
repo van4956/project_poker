@@ -337,10 +337,10 @@ class PokerCalculatorGUI:
                         text_game += f" - To Call {dict_image['to_call']}"
                     self.result_queue.put(text_game)
 
-                    text_card = "Карты: рука "
+                    text_card = "Карты:  "
                     text_card += ' '.join(dict_image['hero_cards'])
                     if len(dict_image['board_cards']) > 0:
-                        text_card += " доска "
+                        text_card += "  +  "
                         text_card += ' '.join(dict_image['board_cards'])
                     self.result_queue.put(text_card)
 
@@ -361,7 +361,7 @@ class PokerCalculatorGUI:
                     for action, value in dict_action.items():
                         action_name, action_amount = action.split('_')
                         action_ = action_name.capitalize() + '[' + str(action_amount) + ']'
-                        text_actions += f"{action_}={value}; "
+                        text_actions += f"{action_}={value} "
                     self.result_queue.put(text_actions)
 
                 else:
@@ -474,7 +474,7 @@ class PokerCalculatorGUI:
         '''Удаляет старые скриншоты, оставляя только указанное количество последних'''
         try:
             # Ищем все файлы скриншотов по паттерну
-            screenshot_pattern = "screenshot_*.png"
+            screenshot_pattern = "*.png"
             screenshot_files = glob.glob(screenshot_pattern)
 
             # Если файлов меньше чем лимит - ничего не делаем

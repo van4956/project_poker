@@ -12,7 +12,7 @@ TOTAL_MODEL_PATH = "models/totalpoker_yolo11n_200_768_40_0005.pt"
 total_model = YOLO(TOTAL_MODEL_PATH, verbose=True)
 
 # Загружаем модель для детекции карт
-CARDS_MODEL_PATH = "models/pokercard_yolo11n_830_756_80_001.pt"
+CARDS_MODEL_PATH = "models/pokercard_yolo11n_7598_768_80_001.pt"
 cards_model = YOLO(CARDS_MODEL_PATH, verbose=True)
 
 
