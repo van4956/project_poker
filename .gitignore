@@ -118,3 +118,10 @@ equity_cache.pickle
 screenshot_*.png
 подсказка.txt
 план.txt
+version_info.txt
+prompt_config.txt
+build_poker_bot.py
+setup_prompt.sh
+
+dist/
+build/
