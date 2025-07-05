@@ -1,10 +1,12 @@
 import hashlib
 import pickle
 import os
+import sys
 import logging
 from functools import lru_cache
 from math import comb
 import numpy as np
+from pathlib import Path
 
 from treys import Evaluator, Deck, Card
 import random
@@ -22,7 +24,18 @@ EVALUATOR = Evaluator()
 
 # Кэш для equity расчетов
 EQUITY_CACHE = {}
-CACHE_FILE = "equity_cache.pickle"
+
+def get_cache_file_path():
+    """Получает путь к файлу кэша в зависимости от способа запуска"""
+    if getattr(sys, 'frozen', False):
+        # Запуск из .exe файла
+        exe_dir = Path(sys.executable).parent
+        return str(exe_dir / "equity_cache.pickle")
+    else:
+        # Обычный запуск
+        return "equity_cache.pickle"
+
+CACHE_FILE = get_cache_file_path()
 
 def load_equity_cache():
     """Загружает кэш equity из файла"""

@@ -5,17 +5,29 @@ import ultralytics
 import cv2
 import numpy as np
 import os
+import sys
 import logging
+from pathlib import Path
 
 # Настройка логгера для этого модуля
 logger = logging.getLogger(__name__)
 
+def get_model_path(model_name):
+    """Получает путь к модели в зависимости от способа запуска"""
+    if getattr(sys, 'frozen', False):
+        # Запуск из .exe файла
+        base_path = Path(sys._MEIPASS)
+        return str(base_path / "models" / model_name)
+    else:
+        # Обычный запуск
+        return f"models/{model_name}"
+
 # Загружаем общую модель детекции всего стола
-TOTAL_MODEL_PATH = "models/totalpoker_yolo11n_200_768_40_0005.pt"
+TOTAL_MODEL_PATH = get_model_path("totalpoker_yolo11n_200_768_40_0005.pt")
 total_model = YOLO(TOTAL_MODEL_PATH, verbose=True)
 
 # Загружаем модель для детекции карт
-CARDS_MODEL_PATH = "models/pokercard_yolo11n_7598_768_80_001.pt"
+CARDS_MODEL_PATH = get_model_path("pokercard_yolo11n_7598_768_80_001.pt")
 cards_model = YOLO(CARDS_MODEL_PATH, verbose=True)
 
 

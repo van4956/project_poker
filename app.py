@@ -61,7 +61,7 @@ def main():
 
     try:
         root = tk.Tk()
-        app = PokerCalculatorGUI(root)
+        PokerCalculatorGUI(root)
         logger.info("GUI успешно инициализирован")
         root.mainloop()
     except Exception as e:

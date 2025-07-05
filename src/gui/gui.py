@@ -31,11 +31,13 @@ import PIL.ImageGrab as ImageGrab  # Для создания скриншото�
 import PIL
 import threading                   # Для асинхронных операций
 import queue                       # Для безопасной передачи данных между потоками
-import time                        # Для работы с временем
 import glob                        # Для поиска файлов по маске
 
 from src.cv.parser import parse_image
 from src.pokerlogic.best_action import best_action
+
+n_simulations = 10000
+
 
 class PokerCalculatorGUI:
     '''Класс для создания и управления графическим интерфейсом приложения'''
@@ -278,16 +280,17 @@ class PokerCalculatorGUI:
 
         self.selection_coords = None
         self.hide_additional_buttons()
-        self.update_status_safe("Анализ остановлен")
+        # Обновляем статус через специальное сообщение
+        self.result_queue.put(('status', "Анализ остановлен"))
 
     def start_analysis(self):
         '''Запуск анализа в отдельном потоке'''
         if not self.selection_coords:
-            self.update_status_safe("Область не выбрана")
+            self.result_queue.put(('status', "Область не выбрана"))
             return
 
         if self.is_analyzing:
-            self.update_status_safe("Анализ уже выполняется ...")
+            self.result_queue.put(('status', "Анализ уже выполняется ..."))
             return
 
         # Обновляем интерфейс для непрерывного анализа
@@ -299,8 +302,6 @@ class PokerCalculatorGUI:
         # Запускаем анализ в отдельном потоке
         self.analysis_thread = threading.Thread(target=self.analysis_worker, daemon=True)
         self.analysis_thread.start()
-
-        # self.update_status_safe("Запуск анализа.")
 
     def analysis_worker(self):
         '''Анализ изображения покера'''
@@ -365,16 +366,22 @@ class PokerCalculatorGUI:
                                                                 bb=1,
                                                                 hero_stack=dict_image['hero_stack'],
                                                                 to_call=to_call,
-                                                                n_simulations=2000)
+                                                                n_simulations=n_simulations)
                     text_actions = "Действия: "
                     for action, value in dict_action.items():
                         action_name, action_amount = action.split('_')
                         action_ = action_name.capitalize() + '(' + str(action_amount) + ')'
                         text_actions += f"{action_} {value} "
+
+                    # Отправляем действия как специальное сообщение для статуса
+                    self.result_queue.put(('status', text_actions))
+                    # И также в общий поток результатов
                     self.result_queue.put(text_actions)
 
                 else:
-                    self.result_queue.put("Ошибка: это не покерная сессия")
+                    error_msg = "Ошибка: это не покерная сессия"
+                    self.result_queue.put(('status', error_msg))
+                    self.result_queue.put(error_msg)
 
                 end_time = time.time()
                 self.result_queue.put(f"Время: {end_time - start_time:.3f} секунд")
@@ -389,32 +396,13 @@ class PokerCalculatorGUI:
 
             except Exception as e:
                 error_msg = f"Ошибка: {str(e)}"
+                self.result_queue.put(('status', error_msg))
                 self.result_queue.put(error_msg)
                 logger.error("Ошибка в analysis_worker: %s", e)
                 self.is_analyzing = False
                 break
 
         self.is_analyzing = False
-
-
-    def update_status_safe(self, message):
-        '''Безопасное обновление статуса из любого потока'''
-        self.root.after(0, lambda: self.update_status(message))
-
-    def update_status(self, message):
-        '''
-        Обновляет статус и результаты анализа.
-        Это строчка в верхней части окна под кнопками
-        '''
-
-        status_line = message.split('\n')[0]  # Первая строка для статуса
-        self.status_label.config(text=status_line)
-
-        # Обновляем область результатов
-        self.results_text.config(state='normal')  # Разрешаем редактирование
-        self.results_text.insert(tk.END, f"{time.strftime('%H:%M:%S')} - {message}\n")
-        self.results_text.see(tk.END)  # Прокручиваем в конец
-        self.results_text.config(state='disabled')  # Отключаем редактирование
 
     def cancel_selection(self, event=None):
         '''Отмена выделения области'''
@@ -458,7 +446,7 @@ class PokerCalculatorGUI:
     def toggle_continuous_analysis(self):
         '''Переключает режим непрерывного анализа'''
         if not self.selection_coords:
-            self.update_status_safe("Сначала выберите область")
+            self.result_queue.put(('status', "Сначала выберите область"))
             return
 
         self.continuous_analysis = not self.continuous_analysis
@@ -475,7 +463,18 @@ class PokerCalculatorGUI:
         try:
             while not self.result_queue.empty():
                 result = self.result_queue.get_nowait()
-                self.update_status(result)
+
+                # Проверяем, является ли результат специальным сообщением для статуса
+                if isinstance(result, tuple) and result[0] == 'status':
+                    # Обновляем только статус (без времени)
+                    self.status_label.config(text=result[1])
+                else:
+                    # Обычное сообщение - добавляем в результаты с временем
+                    self.results_text.config(state='normal')
+                    self.results_text.insert(tk.END, f"{time.strftime('%H:%M:%S')} - {result}\n")
+                    self.results_text.see(tk.END)
+                    self.results_text.config(state='disabled')
+
         except queue.Empty:
             pass
 
