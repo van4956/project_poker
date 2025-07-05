@@ -8,6 +8,10 @@ import sys
 import os
 import cv2
 import math
+import logging
+
+# Настройка логгера для этого модуля
+logger = logging.getLogger(__name__)
 
 # Добавляем корневую директорию проекта в sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -86,27 +90,28 @@ def parse_image(image_path: str, conf: float = 0.3) -> dict:
     '''
     # Проверяем существование файла
     if not os.path.exists(image_path):
-        print(f"Ошибка: файл {image_path} не существует")
+        logger.error("Файл %s не существует", image_path)
         return {}
 
     # Проверяем возможность загрузки изображения
     img = cv2.imread(image_path)
     if img is None:
-        print(f"Ошибка: не удалось загрузить изображение {image_path}")
+        logger.error("Не удалось загрузить изображение %s", image_path)
         return {}
 
     img_h, img_w = img.shape[:2]
     if img_h == 0 or img_w == 0:
-        print(f"Ошибка: изображение имеет нулевые размеры {img_w}x{img_h}")
+        logger.error("Изображение имеет нулевые размеры %sx%s", img_w, img_h)
         return {}
 
     # список обнаруженных объектов
     list_detect_images = detect_image(image_path=image_path,
                                                             conf=0.4,
-                                                            save_img=True)
+                                                            save_img=False)
 
     # если нет обнаруженных объектов, то возвращаем None
     if len(list_detect_images) == 0:
+        logger.warning("Не обнаружено покерных объектов на изображении")
         return {}
 
     # словарь результатов
@@ -167,7 +172,7 @@ def parse_image(image_path: str, conf: float = 0.3) -> dict:
             hero_card = detect_cards(image_path=image_path,
                                                 bbox=det['bbox'],
                                                 conf=conf,
-                                                save_img=True)
+                                                save_img=False)
 
         # уточняем общее количество игроков - total_users
         if det['name'] == 'player_panel':
@@ -217,7 +222,7 @@ def parse_image(image_path: str, conf: float = 0.3) -> dict:
             board_card = detect_cards(image_path=image_path,
                                                 bbox=det['bbox'],
                                                 conf=conf,
-                                                save_img=True)
+                                                save_img=False)
             dict_result['board_cards'] = list(set(board_card))
 
     # если нет игроков, то возвращаем пустой словарь

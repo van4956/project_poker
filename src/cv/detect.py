@@ -5,7 +5,10 @@ import ultralytics
 import cv2
 import numpy as np
 import os
+import logging
 
+# Настройка логгера для этого модуля
+logger = logging.getLogger(__name__)
 
 # Загружаем общую модель детекции всего стола
 TOTAL_MODEL_PATH = "models/totalpoker_yolo11n_200_768_40_0005.pt"
@@ -83,9 +86,9 @@ if __name__ == "__main__":
 
     # только детекции
     # detections_result_1 = detect_image(path)
-    # print("Детекции:", detections_result_1)
+    # logger.info("Детекции:", detections_result_1)
 
 
     # детекция карт
     cards_result = detect_cards(image_path=path, bbox=(725, 859, 958, 1113), conf=0.3)
-    print("Карты:", cards_result)
+    logger.info("Карты: %s", cards_result)

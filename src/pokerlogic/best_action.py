@@ -1,12 +1,16 @@
 import hashlib
 import pickle
 import os
+import logging
 from functools import lru_cache
 from math import comb
 import numpy as np
 
 from treys import Evaluator, Deck, Card
 import random
+
+# Настройка логгера для этого модуля
+logger = logging.getLogger(__name__)
 
 try:
     from .available_actions import get_available_actions
@@ -23,22 +27,26 @@ CACHE_FILE = "equity_cache.pickle"
 def load_equity_cache():
     """Загружает кэш equity из файла"""
     global EQUITY_CACHE
+
     if os.path.exists(CACHE_FILE):
         try:
             with open(CACHE_FILE, 'rb') as f:
                 EQUITY_CACHE = pickle.load(f)
-            print(f"Загружен кэш equity: {len(EQUITY_CACHE)} записей")
+            logger.info("Кэш equity загружен: %s записей", len(EQUITY_CACHE))
         except Exception as e:
-            print(f"Ошибка загрузки кэша: {e}")
+            logger.error("Ошибка загрузки кэша: %s", e)
             EQUITY_CACHE = {}
+    else:
+        logger.info("Файл кэша не найден, создается новый кэш")
 
 def save_equity_cache():
     """Сохраняет кэш equity в файл"""
     try:
         with open(CACHE_FILE, 'wb') as f:
             pickle.dump(EQUITY_CACHE, f)
+        logger.info("Кэш equity сохранен: %s записей", len(EQUITY_CACHE))
     except Exception as e:
-        print(f"Ошибка сохранения кэша: {e}")
+        logger.error("Ошибка сохранения кэша: %s", e)
 
 def get_cache_key(hero_cards: list, board_cards: list, active: int) -> str:
     """
@@ -56,7 +64,7 @@ def get_cache_key(hero_cards: list, board_cards: list, active: int) -> str:
 
 def calculate_equity_fast(hero_cards: list, board_cards: list, active: int, n_simulations: int) -> float:
     """
-    Быстрый расчет equity с оптимизациями
+    Быстрый расчет equity с оптимизацией кеша
     :param hero_cards: рука игрока
     :param board_cards: доска
     :param active: количество активных игроков
@@ -64,7 +72,9 @@ def calculate_equity_fast(hero_cards: list, board_cards: list, active: int, n_si
     :return: equity
     """
     # Проверяем кэш
-    cache_key = get_cache_key([str(c) for c in hero_cards], [str(c) for c in board_cards], active)
+    list_hero_cards = [str(c) for c in hero_cards]
+    list_board_cards = [str(c) for c in board_cards]
+    cache_key = get_cache_key(list_hero_cards, list_board_cards, active)
     if cache_key in EQUITY_CACHE:
         return EQUITY_CACHE[cache_key]
 
@@ -76,7 +86,7 @@ def calculate_equity_fast(hero_cards: list, board_cards: list, active: int, n_si
 
     wins = ties = losses = 0
 
-    # Оптимизированный цикл симуляций
+    # Цикл симуляций
     for _ in range(n_simulations):
         # Перемешиваем оставшиеся карты
         random.shuffle(remaining_cards)
@@ -89,7 +99,7 @@ def calculate_equity_fast(hero_cards: list, board_cards: list, active: int, n_si
             villains.append(villain)
             card_index += 2
 
-        # Добираем доску до 5 карт, если нужно
+        # Добираем доску до 5 карт, если у нас не Ривер
         sim_board = board_cards[:]
         cards_needed = 5 - len(sim_board)
         if cards_needed > 0:
@@ -113,7 +123,7 @@ def calculate_equity_fast(hero_cards: list, board_cards: list, active: int, n_si
         else:
             losses += 1
 
-    equity = (wins + 0.5 * ties) / n_simulations
+    equity = (wins + 0.3 * ties) / n_simulations
 
     # Кэшируем результат
     EQUITY_CACHE[cache_key] = equity
@@ -203,29 +213,29 @@ load_equity_cache()
 
 # ... existing code ...
 
-if __name__ == "__main__":
-    args1 = {
-        'size': 9,
-        'active': 5,
-        'hero_pos': 'UTG',
-        'hero_cards': ['3s', 'Kh'],
-        'board_cards': [],
-        'range_hands': [],
-        'pot': 3,
-        'bb': 1,
-        'hero_stack': 9,
-        'to_call': 2,
-        'n_simulations': 10000  # Теперь можно настраивать
-    }
+# if __name__ == "__main__":
+#     args1 = {
+#         'size': 9,
+#         'active': 5,
+#         'hero_pos': 'UTG',
+#         'hero_cards': ['3s', 'Kh'],
+#         'board_cards': [],
+#         'range_hands': [],
+#         'pot': 3,
+#         'bb': 1,
+#         'hero_stack': 9,
+#         'to_call': 2,
+#         'n_simulations': 10000  # Теперь можно настраивать
+#     }
 
-    print("Запуск оптимизированной версии...")
-    import time
-    start = time.time()
-    result = best_action(**args1)
-    end = time.time()
+#     print("Запуск оптимизированной версии...")
+#     import time
+#     start = time.time()
+#     result = best_action(**args1)
+#     end = time.time()
 
-    print(f"Результат: {result}")
-    print(f"Время: {end - start:.3f} секунд")
+#     print(f"Результат: {result}")
+#     print(f"Время: {end - start:.3f} секунд")
 
-    # Сохраняем кэш при завершении
-    save_equity_cache()
+#     # Сохраняем кэш при завершении
+#     save_equity_cache()

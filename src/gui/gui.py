@@ -3,6 +3,10 @@ import ctypes
 import os
 import sys
 import time
+import logging
+
+# Настройка логгера для этого модуля
+logger = logging.getLogger(__name__)
 
 # Настраиваем DPI awareness ДО импорта tkinter, для корректного отображения
 try:
@@ -11,15 +15,15 @@ try:
 
     # Делаем приложение DPI aware
     windll.shcore.SetProcessDpiAwareness(2)  # PROCESS_PER_MONITOR_DPI_AWARE
-    print("DPI awareness установлен: PROCESS_PER_MONITOR_DPI_AWARE")
+    logger.info("DPI awareness установлен: PROCESS_PER_MONITOR_DPI_AWARE")
 
 except Exception as e:
     try:
         # Fallback для старых версий Windows
         ctypes.windll.user32.SetProcessDPIAware()
-        print("DPI awareness установлен: SetProcessDPIAware (fallback)")
+        logger.info("DPI awareness установлен: SetProcessDPIAware (fallback)")
     except Exception as e2:
-        print(f"Не удалось установить DPI awareness: {e}, {e2}")
+        logger.error("Не удалось установить DPI awareness: %s, %s", e, e2)
 
 import tkinter as tk               # Основной модуль tkinter (базовые виджеты)
 from tkinter import ttk            # Подмодуль ttk (современные themed виджеты)
@@ -48,7 +52,7 @@ class PokerCalculatorGUI:
         self.root.configure(bg='#2c3e50')  # Темно-синий фон окна
 
         # Диагностика системы при запуске
-        self.print_system_info()
+        self.log_system_info()
 
         # Получаем информацию о DPI (для отладки)
         self.get_dpi_info()
@@ -68,7 +72,10 @@ class PokerCalculatorGUI:
         self.last_analysis_result = None
 
         # Установка иконки (если файл существует)
-        self.root.iconbitmap('poker.ico')
+        try:
+            self.root.iconbitmap('poker.ico')
+        except:
+            logger.warning("Иконка poker.ico не найдена")
 
         # Основной фрейм
         main_frame = tk.Frame(root, bg='#34495e')
@@ -370,7 +377,6 @@ class PokerCalculatorGUI:
                     self.result_queue.put("Ошибка: это не покерная сессия")
 
                 end_time = time.time()
-                print(f"Время: {end_time - start_time:.3f} секунд")
                 self.result_queue.put(f"Время: {end_time - start_time:.3f} секунд")
 
                 # Если не непрерывный режим - останавливаемся
@@ -384,7 +390,7 @@ class PokerCalculatorGUI:
             except Exception as e:
                 error_msg = f"Ошибка: {str(e)}"
                 self.result_queue.put(error_msg)
-                print(f"Ошибка в analysis_worker: {e}")
+                logger.error("Ошибка в analysis_worker: %s", e)
                 self.is_analyzing = False
                 break
 
@@ -496,20 +502,20 @@ class PokerCalculatorGUI:
             for file_path in files_to_delete:
                 try:
                     os.remove(file_path)
-                    print(f"Удален старый скриншот: {file_path}")
+                    logger.info("Удален старый скриншот: %s", file_path)
                 except OSError as e:
-                    print(f"Ошибка удаления файла {file_path}: {e}")
+                    logger.error("Ошибка удаления файла %s: %s", file_path, e)
 
         except Exception as e:
-            print(f"Ошибка очистки скриншотов: {e}")
+            logger.error("Ошибка очистки скриншотов: %s", e)
 
-    def print_system_info(self):
+    def log_system_info(self):
         '''Выводит информацию о системе'''
-        print(f"Операционная система: {os.name}")
-        print(f"Имя пользователя: {os.getlogin()}")
-        print(f"Текущая рабочая директория: {os.getcwd()}")
-        print(f"Версия Python: {sys.version}")
-        print(f"Версия PIL: {PIL.__version__}")
+        logger.info("Операционная система: %s", os.name)
+        logger.info("Имя пользователя: %s", os.getlogin())
+        logger.info("Текущая рабочая директория: %s", os.getcwd())
+        logger.info("Версия Python: %s", sys.version)
+        logger.info("Версия PIL: %s", PIL.__version__)
 
     def get_dpi_scale(self):
         '''Получает коэффициент DPI масштабирования Windows'''
@@ -524,11 +530,11 @@ class PokerCalculatorGUI:
 
             # Стандартный DPI = 96, вычисляем коэффициент
             scale_factor = dpi / 96.0
-            print(f"DPI: {dpi}, Коэффициент масштабирования: {scale_factor}")
+            logger.info("DPI: %s, Коэффициент масштабирования: %s", dpi, scale_factor)
             return scale_factor
 
         except Exception as e:
-            print(f"Ошибка получения DPI: {e}")
+            logger.error("Ошибка получения DPI: %s", e)
             return 1.0  # По умолчанию без масштабирования
 
     def get_dpi_info(self):
@@ -541,7 +547,7 @@ class PokerCalculatorGUI:
 
             # Стандартный DPI = 96, вычисляем коэффициент
             scale_factor = dpi / 96.0
-            print(f"DPI информация: {dpi}, Коэффициент: {scale_factor}")
+            logger.info("DPI информация: %s, Коэффициент: %s", dpi, scale_factor)
 
         except Exception as e:
-            print(f"Ошибка получения DPI: {e}")
+            logger.error("Ошибка получения DPI: %s", e)
