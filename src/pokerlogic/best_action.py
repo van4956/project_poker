@@ -151,9 +151,12 @@ def best_action(size: int,
   :fold_equity: float - вероятность фолда оппонента (по умолчанию 0.5)
   :return: dict[str,float] - словарь, ключ - возможные действия, значение - EV
   '''
-  # Проверяем количесвто карт в руке
+  # Проверяем количесвто карт
   if len(hero_cards) != 2:
       raise ValueError("ошибка детекции карт в руке")
+
+  if len(board_cards) > 5 or len(board_cards) == 1 or len(board_cards) == 2:
+      raise ValueError("ошибка детекции карт доски")
 
   # Преобразуем карты в объекты treys
   hero_cards = [Card.new(c) for c in hero_cards]
@@ -163,7 +166,7 @@ def best_action(size: int,
   equity = calculate_equity_fast(hero_cards, board_cards, active, n_simulations)
 
   # формируем возможные действия игрока
-  available_actions = get_available_actions(to_call, hero_stack, bb)
+  available_actions = get_available_actions(pot, to_call, hero_stack, bb)
 
   # рассчитываем EV для каждого действия
   for action, _ in available_actions.items():
@@ -176,14 +179,14 @@ def best_action(size: int,
 
       elif action_name == 'check':
           # EV = E × Y
-          available_actions[action] = round(equity * pot, 2)
+          available_actions[action] = round(equity * pot, 1)
 
       elif action_name == 'call':
           # EV = E × (Y + X) – (1 – E) × X
           X = action_amount  # наша ставка
           Y = pot           # текущий банк
           E = equity        # наша equity
-          available_actions[action] = round(E * (Y + X) - (1 - E) * X, 2)
+          available_actions[action] = round(E * (Y + X) - (1 - E) * X, 1)
 
       elif action_name in ['bet', 'raise', 'all-in']:
           # EV = FE × Y + (1 – FE) × (E × (Y + X) – (1 – E) × X)
@@ -191,7 +194,7 @@ def best_action(size: int,
           Y = pot           # текущий банк
           E = equity        # наша equity
           FE = fold_equity  # вероятность фолда оппонента
-          available_actions[action] = round(FE * Y + (1 - FE) * (E * (Y + X) - (1 - E) * X), 2)
+          available_actions[action] = round(FE * Y + (1 - FE) * (E * (Y + X) - (1 - E) * X), 1)
 
   return available_actions
 
@@ -222,7 +225,7 @@ if __name__ == "__main__":
     end = time.time()
 
     print(f"Результат: {result}")
-    print(f"Время выполнения: {end - start:.3f} секунд")
+    print(f"Время: {end - start:.3f} секунд")
 
     # Сохраняем кэш при завершении
     save_equity_cache()

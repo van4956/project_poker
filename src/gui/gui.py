@@ -2,6 +2,7 @@
 import ctypes
 import os
 import sys
+import time
 
 # Настраиваем DPI awareness ДО импорта tkinter, для корректного отображения
 try:
@@ -320,6 +321,7 @@ class PokerCalculatorGUI:
                 self.cleanup_old_screenshots(max_screenshots=10)
 
                 # Начало анализа изображения
+                start_time = time.time()
                 self.result_queue.put('--------------------------------------------------------')
 
                 status_message = f"{filename}, {img_width}x{img_height}"
@@ -340,7 +342,7 @@ class PokerCalculatorGUI:
                     text_card = "Карты:  "
                     text_card += ' '.join(dict_image['hero_cards'])
                     if len(dict_image['board_cards']) > 0:
-                        text_card += "  +  "
+                        text_card += "     "
                         text_card += ' '.join(dict_image['board_cards'])
                     self.result_queue.put(text_card)
 
@@ -356,16 +358,20 @@ class PokerCalculatorGUI:
                                                                 bb=1,
                                                                 hero_stack=dict_image['hero_stack'],
                                                                 to_call=to_call,
-                                                                n_simulations=5000)
+                                                                n_simulations=2000)
                     text_actions = "Действия: "
                     for action, value in dict_action.items():
                         action_name, action_amount = action.split('_')
-                        action_ = action_name.capitalize() + '[' + str(action_amount) + ']'
-                        text_actions += f"{action_}={value} "
+                        action_ = action_name.capitalize() + '(' + str(action_amount) + ')'
+                        text_actions += f"{action_} {value} "
                     self.result_queue.put(text_actions)
 
                 else:
                     self.result_queue.put("Ошибка: это не покерная сессия")
+
+                end_time = time.time()
+                print(f"Время: {end_time - start_time:.3f} секунд")
+                self.result_queue.put(f"Время: {end_time - start_time:.3f} секунд")
 
                 # Если не непрерывный режим - останавливаемся
                 if not self.continuous_analysis:

@@ -293,11 +293,11 @@ def parse_image(image_path: str, conf: float = 0.3) -> dict:
 
     if len(dict_result['board_cards']) == 0:
         dict_result['street'] = "Preflop"
-    elif len(dict_result['board_cards']) < 3:
+    elif len(dict_result['board_cards']) == 3:
         dict_result['street'] = "Flop"
     elif len(dict_result['board_cards']) == 4:
         dict_result['street'] = "Turn"
-    elif len(dict_result['board_cards']) >= 5:
+    elif len(dict_result['board_cards']) == 5:
         dict_result['street'] = "River"
 
 

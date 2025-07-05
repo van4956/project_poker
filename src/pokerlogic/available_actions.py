@@ -1,7 +1,8 @@
 import math
 
 # Функция формирования возможных ответных действий
-def get_available_actions(to_call: float = 0,
+def get_available_actions(pot: float = 1,
+                          to_call: float = 0,
                           stack: float = 0,
                           bb: float = 1) -> dict[str, float]:
     '''
@@ -17,20 +18,22 @@ def get_available_actions(to_call: float = 0,
 
     # Никто не поставил до нас (to_call == 0)
     if to_call == 0:
-        actions['check_0'] = None
+        # actions['check_0'] = None
         actions[f'bet_{bb}'] = None
-        actions[f'all-in_{stack}'] = None
+        actions[f'bet_{pot/2}'] = None
+        actions[f'bet_{pot}'] = None
+        # actions[f'all-in_{stack}'] = None
 
     # Есть ставка перед нами (to_call > 0)
     else:
         # Cтек меньше ставки
         if to_call >= stack:
-            actions['fold_0'] = None
+            # actions['fold_0'] = None
             actions[f'all-in_{stack}'] = None
 
         # Cтек больше ставки
         else:
-            actions['fold_0'] = None
+            # actions['fold_0'] = None
             actions[f'call_{to_call}'] = None
 
             # raise x2 от to_call, округленный до BB
@@ -43,6 +46,6 @@ def get_available_actions(to_call: float = 0,
             if stack >= raise_3x:
                 actions[f'raise_{raise_3x}'] = None
 
-            actions[f'all-in_{stack}'] = None
+            # actions[f'all-in_{stack}'] = None
 
     return actions
