@@ -438,7 +438,7 @@ class PokerCalculatorGUI:
             self.overlay_window.destroy()
 
         # Очищаем все скриншоты при выходе
-        self.cleanup_old_screenshots(max_screenshots=1)
+        self.cleanup_old_screenshots(max_screenshots=0)
 
         self.root.quit()
         self.root.destroy()
@@ -488,15 +488,19 @@ class PokerCalculatorGUI:
             screenshot_pattern = "*.png"
             screenshot_files = glob.glob(screenshot_pattern)
 
-            # Если файлов меньше чем лимит - ничего не делаем
-            if len(screenshot_files) <= max_screenshots:
-                return
+            # Если max_screenshots = 0, удаляем все файлы
+            if max_screenshots == 0:
+                files_to_delete = screenshot_files
+            else:
+                # Если файлов меньше чем лимит - ничего не делаем
+                if len(screenshot_files) <= max_screenshots:
+                    return
 
-            # Сортируем файлы по времени создания (самые новые в конце)
-            screenshot_files.sort(key=lambda x: os.path.getctime(x))
+                # Сортируем файлы по времени создания (самые новые в конце)
+                screenshot_files.sort(key=lambda x: os.path.getctime(x))
 
-            # Удаляем самые старые файлы, оставляя только max_screenshots
-            files_to_delete = screenshot_files[:-max_screenshots]
+                # Удаляем самые старые файлы, оставляя только max_screenshots
+                files_to_delete = screenshot_files[:-max_screenshots]
 
             for file_path in files_to_delete:
                 try:
